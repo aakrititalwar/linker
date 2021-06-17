@@ -61,7 +61,7 @@ void __instrerror(int errcode){
 
         //cout << errstring << endl;
         //char output[100];
-        cout << " Error: " << errstring << " is not defined; zero used" << endl;
+        cout << " Error: " << errstring << " is not defined; zero used";
         //cout << "Error: is not defined; zero used" << endl;
         //sprintf( output,"Error: %s is not defined; zero used\n",errstring.c_str());
         //cout << output << endl;
@@ -167,19 +167,33 @@ string convertToString(char* a)
 }
 
 bool checkint(char * str){
-    for (int i=0; i<(strlen(str)-1); i++){
-        if (isdigit(str[i]))
+    //cout << "checkintold" << strlen(str) << endl;
+    string s = convertToString(str);
+    s.erase(s.find_last_not_of(" \t\n\r\f\v") + 1);
+    int n = s.length();
+    char ca[n+1];
+    strcpy(ca,s.c_str());
+    //cout <<"checkintnew" << n << endl;
+    //cout << "s=" << ca << endl;
+    //cout << "lastchar" <<ca[n-1] << "wohoo" << endl;
+    for (int i=0; i<n; i++){
+        //printf("stri %c\n",ca[i]);
+        // if(str[i]=='\0' || str[i]=='\n' || str[i]==' '){
+        //     printf("yo");
+        //     continue;
+        // }
+        if (isdigit(ca[i]))
             continue;
         else
             return false;
 
     }
     return true;
-
 }
 
 int readNum(){
     char* c = getToken();
+    //cout << c << endl;
     if(c == NULL) {
         if(!(module_start)){
             __parseerror(0);
@@ -219,7 +233,7 @@ char* readinstr(){
        __parseerror(2); 
     }
     if(strlen(c) != 1){
-        cout << strlen(c) << endl;
+        //cout << strlen(c) << endl;
         __parseerror(2);
     }
     else{
