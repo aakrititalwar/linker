@@ -33,7 +33,7 @@ void __parseerror(int errcode) {
  "TOO_MANY_INSTR", // total num_instr exceeds memory size (512)
  };
  //cout  << errstr[errcode] << endl;
- printf("Parse Error line %d offset %d %s\n", linenum,lineoffset,errstr[errcode]);
+ printf("Parse Error line %d offset %d: %s\n", linenum,lineoffset,errstr[errcode]);
  exit(-1);
 }
 
@@ -239,7 +239,7 @@ void check_used_symbols(bool* usedarr,string* usearr,int module,int usecount){
         //cout << usedarr[i] << endl;
         //cout << usearr[i] << endl;
         if(!(usedarr[i])){
-            cout << "Warning: Module " << module << ":" << usearr[i] << "appeared in the uselist but was not actually used\n";
+            cout << "Warning: Module " << module << ": " << usearr[i] << " appeared in the uselist but was not actually used\n";
             //printf("Warning: Module %d: %s appeared in the uselist but was not actually used",module,usearr[i].c_str());
             //cout << "\tWarning: Module" << module << ":" << usearr[i];
         }
