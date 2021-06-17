@@ -9,8 +9,11 @@ using namespace std;
 
 int linenum = 0;
 int lineoffset = 0;
-FILE* file = fopen ("point.txt", "r");
+//string fileTotake;
+FILE* file;
 static bool need_new_line = true;
+string errstring;
+static int linelen = 0;
 static char linebuf[1024];
 const char* DELIM = " \t\n";
 static bool eofFlag = false;
@@ -34,7 +37,7 @@ void __parseerror(int errcode) {
  exit(-1);
 }
 
-void __instrerror(int errcode, string errstring){
+void __instrerror(int errcode){
     
     if(errcode<=5){
     static char* errarr[] = {
@@ -56,8 +59,7 @@ void __instrerror(int errcode, string errstring){
 
         //cout << errstring << endl;
         //char output[100];
-        cout << "Error: " << errstring << endl;        
-        cout << " is not defined; zero used" << endl;
+        cout << " Error: " << errstring << " is not defined; zero used" << endl;
         //cout << "Error: is not defined; zero used" << endl;
         //sprintf( output,"Error: %s is not defined; zero used\n",errstring.c_str());
         //cout << output << endl;
@@ -69,9 +71,12 @@ char * getToken()
 {
     while(1) {
         if (need_new_line) {
-            lineoffset = 0;
+            linelen = strlen(linebuf);
+            cout << "linelen " <<linelen << endl; 
+            lineoffset = 1;
             if (fgets(linebuf, 1024, file) == NULL) {
                 eofFlag = true;
+                lineoffset = linelen;
                return NULL;
                } // EOF reached
             if((strcmp(linebuf,"\n") == 0)||(strcmp(linebuf,"\r\n") == 0)||(strcmp(linebuf,"\0") == 0)){
@@ -234,8 +239,7 @@ void check_used_symbols(bool* usedarr,string* usearr,int module,int usecount){
         //cout << usedarr[i] << endl;
         //cout << usearr[i] << endl;
         if(!(usedarr[i])){
-            cout << "Warning: Module " << module << ":" << usearr[i] << endl;
-            cout  << "appeared in the uselist but was not actually used\n";
+            cout << "Warning: Module " << module << ":" << usearr[i] << "appeared in the uselist but was not actually used\n";
             //printf("Warning: Module %d: %s appeared in the uselist but was not actually used",module,usearr[i].c_str());
             //cout << "\tWarning: Module" << module << ":" << usearr[i];
         }
@@ -270,8 +274,8 @@ void initialise_def_used_table(){
 }
 
 void check_defined_symbols(){
-    map<string, int>::iterator itr;
-    for (itr = symtable.begin(); itr != symtable.end(); ++itr) {
+    map<string, bool>::iterator itr;
+    for (itr = def_used_table.begin(); itr != def_used_table.end(); ++itr) {
         if(!(itr->second)){
             printf("Warning: Module %d: %s was defined but never used\n",module_map[itr->first],itr->first.c_str());
         }
@@ -295,7 +299,7 @@ void pass1(){
         Module++;
         int defcount = readNum();
         if (eofFlag) break;
-        cout << defcount << endl;
+        //cout << defcount << endl;
         if(defcount>16){
             __parseerror(4);
         }
@@ -367,6 +371,7 @@ void pass2(){
     //cout << eofFlag << endl;
     int mmcounter = -1;
     int Module = 0;
+    printf("\n");
     printf("Memory Map\n");
     while(!eofFlag){
     Module ++;  
@@ -387,7 +392,11 @@ void pass2(){
     }
     for (int i=0;i<usecount;i++) {
         char* sym = readSym();
-        usearr[i] = convertToString(sym);
+        string str = convertToString(sym);
+        str.erase(str.find_last_not_of(" \t\n\r\f\v") + 1);
+        usearr[i] = str;
+        //cout << usearr[i] << endl;
+        //cout << "sym***" << symtable[usearr[i]] << endl;
         }  
 
     // for (int i = 0; i < usecount; i++){
@@ -403,7 +412,7 @@ void pass2(){
         int address = readNum();
         int mmaddress = 0;
         int errcode = -1;
-        string errstring = "";
+        //string errstring = "";
         int rem = address%1000;
         int opcode = address/1000;
         if(instrmode[0] == 'R'){
@@ -479,9 +488,8 @@ void pass2(){
         }
         mmcounter++;
         printf("%03d : %04d",mmcounter, mmaddress);
-        //cout << errstring;
-        if(errcode!=-1);{
-        __instrerror(errcode,errstring);
+        if(errcode!=-1){
+        __instrerror(errcode);
         }
         printf("\n");
         }
@@ -489,13 +497,15 @@ void pass2(){
         counter = counter + instrcount;
         
     }
+    printf("\n");
     check_defined_symbols();
 }
 
 
 
-int main()
+int main(int argc, char *argv[])
 {
+    file = fopen(argv[1], "r");
     pass1();
     printSymTable();
     eofFlag = false;
@@ -503,3 +513,4 @@ int main()
     initialise_def_used_table();
     pass2();
 }
+
