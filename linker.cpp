@@ -72,7 +72,7 @@ char * getToken()
     while(1) {
         if (need_new_line) {
             linelen = strlen(linebuf);
-            cout << "linelen " <<linelen << endl; 
+            //cout << "linelen " <<linelen << endl; 
             lineoffset = 1;
             if (fgets(linebuf, 1024, file) == NULL) {
                 eofFlag = true;
