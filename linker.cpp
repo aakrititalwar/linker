@@ -487,7 +487,7 @@ void pass2(){
             printf("incorrect address mode");
         }
         mmcounter++;
-        printf("%03d : %04d",mmcounter, mmaddress);
+        printf("%03d: %04d",mmcounter, mmaddress);
         if(errcode!=-1){
         __instrerror(errcode);
         }
