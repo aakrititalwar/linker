@@ -16,7 +16,7 @@ string errstring;
 static int linelen = 0;
 static int tokenlength = 0;
 static char linebuf[1024];
-const char* DELIM = " \t\n";
+const char* DELIM = " \t\n\r\v\f";
 static bool eofFlag = false;
 static bool module_start = false; 
 map<string, int> symtable;
@@ -94,7 +94,7 @@ char * getToken()
                continue; 
                } // if blank line go to next line;
             linenum++;
-            char* tok = strtok(linebuf," \t\n");
+            char* tok = strtok(linebuf, DELIM);
             if (tok == NULL) // no tokens in line   
                 continue; // we try with next line
             need_new_line = false;
@@ -103,7 +103,7 @@ char * getToken()
             //linelen = strlen(tok);
             return tok;
         }
-        char* tok = strtok(NULL," \t\n");
+        char* tok = strtok(NULL, DELIM);
         
         //linelen = strlen(tok);
         if (tok != NULL){ 
@@ -129,7 +129,7 @@ bool validSym(char * str){
         if(isalpha(str[0])){
             // printf("hi\n");
             // cout << strlen(str) << endl;
-            for (int i=1; i<(strlen(str)-1); i++){
+            for (int i=1; i<(strlen(str)); i++){
                 // cout << str[i] << endl;
                 if (isalnum(str[i]))
                     continue;
@@ -137,6 +137,9 @@ bool validSym(char * str){
                         return false;
             }
             return true;
+        }
+        else {
+           return false;
         }
         
     }
@@ -226,21 +229,33 @@ char * readSym(){
     }
 }
 
-char* readinstr(){
+char readinstr(){
     char * c = getToken();
-    //printf("a%sa",c);
+    //printf("token%s",c);
+    // cout <<"token length" <<strlen(c) << endl;
+    // string s = convertToString(c);
+    // s.erase(std::remove_if(s.begin(), s.end(), ::isspace), s.end());
+    // int n = s.length();
+    // cout << "newlen" << n << endl;
+    // char ca[n+1];
+    // strcpy(ca,s.c_str());
     if(c == NULL){
+        //cout << "Hi" << endl;
        __parseerror(2); 
     }
     if(strlen(c) != 1){
+        //cout << "NOt 1" << endl;
         //cout << strlen(c) << endl;
         __parseerror(2);
     }
     else{
         if (c[0] == 'A'|| c[0] == 'I' || c[0] == 'E' || c[0] == 'R'){
-            return c;
+            //cout << "yes" << endl;
+            return c[0];
         }
         else{
+            //cout << "no" << endl;
+            //cout << "a" <<c[0] <<"a";
             __parseerror(2);
         }
     }
@@ -392,7 +407,7 @@ void pass1(){
         int instrcount = readNum();
         //cout << instrcount << endl;
         //cout << "Instroffset"<<lineoffset << endl;
-        if(instrcount>=511){
+        if(instrcount + counter>=512){
             __parseerror(6);
         }
 
@@ -401,8 +416,8 @@ void pass1(){
         AppendSymModTable(symarray, newdefarr, defcount,Module);
         //printf("instruction count %d",instrcount);
         for (int i=0;i<instrcount;i++) {
-        char* addressmode = readinstr();
-        //printf("addressmode is %s\n", addressmode);
+        char addressmode = readinstr();
+        //printf("addressmode is %c\n", addressmode);
         //cout << lineoffset << endl;
         int operand = readNum();
         //cout << operand << endl;
@@ -426,6 +441,7 @@ void pass2(){
     Module ++;
     module_start = true;
     int defcount = readNum();
+    //cout << "defcount"<< defcount << endl;
     module_start = false;
     if (eofFlag) break;
     for (int i=0;i<defcount;i++) {
@@ -436,6 +452,7 @@ void pass2(){
         }
     // printf("Hi");
     int usecount = readNum();
+    //cout << "usecount" << usecount << endl;
     string usearr[usecount];
     bool usedarr[usecount];
     for (int i = 0 ; i<usecount; i++){
@@ -444,7 +461,7 @@ void pass2(){
     for (int i=0;i<usecount;i++) {
         char* sym = readSym();
         string str = convertToString(sym);
-        str.erase(str.find_last_not_of(" \t\n\r\f\v") + 1);
+        str.erase(str.find_last_not_of(" \t\n\r") + 1);
         usearr[i] = str;
         //cout << usearr[i] << endl;
         //cout << "sym***" << symtable[usearr[i]] << endl;
@@ -459,14 +476,17 @@ void pass2(){
     
     
     for (int i=0;i<instrcount;i++) {
-        char* instrmode = readinstr();
+        char inmode = readinstr();
+        //cout << "inmode" << inmode << endl;
         int address = readNum();
+        //cout << "address" << address << endl;
         int mmaddress = 0;
         int errcode = -1;
-        //string errstring = "";
+        //string inmode = convertToString(instrmode);
+        //cout << "1inmode" << inmode<< endl;
         int rem = address%1000;
         int opcode = address/1000;
-        if(instrmode[0] == 'R'){
+        if(inmode == 'R'){
             if(opcode>=10){
                 mmaddress = 9999;
                 errcode = 5;
@@ -479,7 +499,7 @@ void pass2(){
             mmaddress = address + counter;
             }
         }
-        else if(instrmode[0] == 'E'){
+        else if(inmode == 'E'){
             if(opcode>=10){
                 mmaddress = 9999;
                 errcode = 5;
@@ -513,14 +533,14 @@ void pass2(){
             }
  
         }
-        else if(instrmode[0] == 'I'){
+        else if(inmode == 'I'){
             if(opcode>=10){
             mmaddress = 9999;
             errcode = 4;
             }
             else mmaddress = address;   
         }
-        else if(instrmode[0] == 'A'){
+        else if(inmode == 'A'){
             int opcode = address/1000;
             int rem = address%1000;
             if(opcode>=10){
@@ -535,6 +555,7 @@ void pass2(){
             mmaddress = address;
         }
         else{
+            cout << "inmode"<<inmode << endl;
             printf("incorrect address mode");
         }
         mmcounter++;
