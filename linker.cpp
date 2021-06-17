@@ -370,8 +370,8 @@ void pass1(){
         //cout << usecount << endl;
         for (int i=0;i<usecount;i++) {
         char* sym = readSym();
-        cout << sym << endl;
-        cout << lineoffset << endl;
+        //cout << sym << endl;
+        //cout << lineoffset << endl;
         }
         // instruction line 
         int instrcount = readNum();
@@ -387,7 +387,7 @@ void pass1(){
         //printf("instruction count %d",instrcount);
         for (int i=0;i<instrcount;i++) {
         char* addressmode = readinstr();
-        printf("addressmode is %s\n", addressmode);
+        //printf("addressmode is %s\n", addressmode);
         //cout << lineoffset << endl;
         int operand = readNum();
         //cout << operand << endl;
