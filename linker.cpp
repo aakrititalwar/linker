@@ -17,6 +17,7 @@ static int linelen = 0;
 static char linebuf[1024];
 const char* DELIM = " \t\n";
 static bool eofFlag = false;
+static bool module_start = false; 
 map<string, int> symtable;
 map<string, bool> def_used_table; 
 map<string, int> module_map;
@@ -71,16 +72,21 @@ char * getToken()
 {
     while(1) {
         if (need_new_line) {
-            //linelen = strlen(linebuf);
+            linelen = strlen(linebuf);
+            //cout << (linebuf) << endl;
+            //printf("%s",linebuf);
             //cout << "linelen " <<linelen << endl; 
             lineoffset = 1;
             if (fgets(linebuf, 1024, file) == NULL) {
+                //cout << "end of file" << endl;
                 eofFlag = true;
-                //lineoffset = linelen + lineoffset;
+                //lineoffset = linelen;
                return NULL;
                } // EOF reached
             if((strcmp(linebuf,"\n") == 0)||(strcmp(linebuf,"\r\n") == 0)||(strcmp(linebuf,"\0") == 0)){
+               //cout << "blank line" << endl;
                linenum ++;
+               //lineoffset = 1;
                continue; 
                } // if blank line go to next line;
             linenum++;
@@ -160,20 +166,21 @@ bool checkint(char * str){
             return false;
 
     }
-    if(str[strlen[str]-1]=='\n' || str[strlen[str]-1]=='\0')
     return true;
-    else
-    return false;
 
 }
 
 int readNum(){
     char* c = getToken();
     if(c == NULL) {
-        
+        if(!(module_start)){
+            __parseerror(0);
+        }
+        else
+        return -1;
         //eofFlag = true;
         // __parseerror(0);
-    }
+        }
     else if(checkint(c)){
         return atoi(c);
     }
@@ -187,7 +194,7 @@ char * readSym(){
     if(c == NULL) {  
         // printf("hey");
         //eofFlag = true;
-        // __parseerror(1);
+         __parseerror(1);
     }
     if (validSym(c)){
         return c;
@@ -199,10 +206,12 @@ char * readSym(){
 
 char* readinstr(){
     char * c = getToken();
+    //printf("a%sa",c);
     if(c == NULL){
        __parseerror(2); 
     }
     if(strlen(c) != 1){
+        cout << strlen(c) << endl;
         __parseerror(2);
     }
     else{
@@ -302,7 +311,9 @@ void pass1(){
     //map<string, int> symtable;
     while (!eofFlag){
         Module++;
+        module_start = true;
         int defcount = readNum();
+        module_start = false;
         if (eofFlag) break;
         //cout << defcount << endl;
         if(defcount>16){
@@ -313,7 +324,7 @@ void pass1(){
         for (int i=0;i<defcount;i++) {
             char* sym = readSym();
             int val = readNum();
-            // cout << sym << endl;
+            //cout << sym << endl;
             bool check = check_multi_def_sym(sym,symarray,i);
             // cout << check << endl;
             if(!check){
@@ -379,9 +390,11 @@ void pass2(){
     printf("\n");
     printf("Memory Map\n");
     while(!eofFlag){
-    Module ++;  
-    if (eofFlag) break;
+    Module ++;
+    module_start = true;
     int defcount = readNum();
+    module_start = false;
+    if (eofFlag) break;
     for (int i=0;i<defcount;i++) {
             char* sym = readSym();
             //cout << sym << endl;
