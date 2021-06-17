@@ -71,12 +71,12 @@ char * getToken()
 {
     while(1) {
         if (need_new_line) {
-            linelen = strlen(linebuf);
+            //linelen = strlen(linebuf);
             //cout << "linelen " <<linelen << endl; 
-            lineoffset = 1;
+            //lineoffset = 1;
             if (fgets(linebuf, 1024, file) == NULL) {
                 eofFlag = true;
-                lineoffset = linelen;
+                lineoffset = linelen + lineoffset;
                return NULL;
                } // EOF reached
             if((strcmp(linebuf,"\n") == 0)||(strcmp(linebuf,"\r\n") == 0)||(strcmp(linebuf,"\0") == 0)){
@@ -89,10 +89,12 @@ char * getToken()
                 continue; // we try with next line
             need_new_line = false;
             lineoffset = tok - linebuf + 1;
+            linelen = strlen(tok);
             return tok;
         }
         char* tok = strtok(NULL,DELIM);
         lineoffset = tok - linebuf + 1;
+        linelen = strlen(tok);
         if (tok != NULL) // found a token
             return tok;
         need_new_line = true;
@@ -345,7 +347,7 @@ void pass1(){
         }
         // instruction line 
         int instrcount = readNum();
-        if(instrcount>512){
+        if(instrcount>=511){
             __parseerror(6);
         }
 
