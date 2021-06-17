@@ -89,6 +89,7 @@ char * getToken()
                //cout << "blank line" << endl;
                lineoffset = 1;
                linenum ++;
+               tokenlength = 0;
                //lineoffset = 1;
                continue; 
                } // if blank line go to next line;
