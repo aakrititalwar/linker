@@ -160,7 +160,10 @@ bool checkint(char * str){
             return false;
 
     }
+    if(str[strlen[str]-1]=='\n' || str[strlen[str]-1]=='\0')
     return true;
+    else
+    return false;
 
 }
 
