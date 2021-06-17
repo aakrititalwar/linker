@@ -14,6 +14,7 @@ FILE* file;
 static bool need_new_line = true;
 string errstring;
 static int linelen = 0;
+static int tokenlength = 0;
 static char linebuf[1024];
 const char* DELIM = " \t\n";
 static bool eofFlag = false;
@@ -72,19 +73,21 @@ char * getToken()
 {
     while(1) {
         if (need_new_line) {
-            linelen = strlen(linebuf);
+            //linelen = strlen(linebuf);
             //cout << (linebuf) << endl;
             //printf("%s",linebuf);
             //cout << "linelen " <<linelen << endl; 
-            lineoffset = 1;
+            
             if (fgets(linebuf, 1024, file) == NULL) {
                 //cout << "end of file" << endl;
+                lineoffset = lineoffset + tokenlength;
                 eofFlag = true;
                 //lineoffset = linelen;
                return NULL;
                } // EOF reached
             if((strcmp(linebuf,"\n") == 0)||(strcmp(linebuf,"\r\n") == 0)||(strcmp(linebuf,"\0") == 0)){
                //cout << "blank line" << endl;
+               lineoffset = 1;
                linenum ++;
                //lineoffset = 1;
                continue; 
@@ -94,15 +97,19 @@ char * getToken()
             if (tok == NULL) // no tokens in line   
                 continue; // we try with next line
             need_new_line = false;
+            tokenlength = strlen(tok);
             lineoffset = tok - linebuf + 1;
             //linelen = strlen(tok);
             return tok;
         }
         char* tok = strtok(NULL," \t\n");
-        lineoffset = tok - linebuf + 1;
+        
         //linelen = strlen(tok);
-        if (tok != NULL) // found a token
+        if (tok != NULL){ 
+            lineoffset = tok - linebuf + 1;
+            tokenlength = strlen(tok);// found a token
             return tok;
+        }
         need_new_line = true;
        // we try with next line
     }
@@ -308,7 +315,7 @@ void AppendSymModTable( string* symarray, int newdefarr[], int defcount, int mod
 void pass1(){
     int Module = 0; 
     int counter = 0;
-    //map<string, int> symtable;
+    map<string, int> symtable;
     while (!eofFlag){
         Module++;
         module_start = true;
@@ -316,6 +323,7 @@ void pass1(){
         module_start = false;
         if (eofFlag) break;
         //cout << defcount << endl;
+        //cout << lineoffset << endl;
         if(defcount>16){
             __parseerror(4);
         }
@@ -323,8 +331,11 @@ void pass1(){
         int adrarray[defcount];
         for (int i=0;i<defcount;i++) {
             char* sym = readSym();
-            int val = readNum();
             //cout << sym << endl;
+            //cout << lineoffset << endl;
+            int val = readNum();
+            //cout << val << endl;
+            //cout << lineoffset << endl;
             bool check = check_multi_def_sym(sym,symarray,i);
             // cout << check << endl;
             if(!check){
@@ -351,16 +362,21 @@ void pass1(){
 
         //use line
         int usecount = readNum();
+        //cout << usecount << endl;
+        //cout << "usecount offset"<< lineoffset << endl;
         if(usecount>16){
             __parseerror(5);
         }
         //cout << usecount << endl;
         for (int i=0;i<usecount;i++) {
         char* sym = readSym();
-        //cout << sym << endl;
+        cout << sym << endl;
+        cout << lineoffset << endl;
         }
         // instruction line 
         int instrcount = readNum();
+        //cout << instrcount << endl;
+        //cout << "Instroffset"<<lineoffset << endl;
         if(instrcount>=511){
             __parseerror(6);
         }
@@ -371,9 +387,11 @@ void pass1(){
         //printf("instruction count %d",instrcount);
         for (int i=0;i<instrcount;i++) {
         char* addressmode = readinstr();
+        printf("addressmode is %s\n", addressmode);
+        //cout << lineoffset << endl;
         int operand = readNum();
-        //printf("addressmode is %s\n", addressmode);
         //cout << operand << endl;
+        //cout << lineoffset << endl;
         }
         
         counter = counter + instrcount;
