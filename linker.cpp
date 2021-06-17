@@ -9,11 +9,9 @@ using namespace std;
 
 int linenum = 0;
 int lineoffset = 0;
-//string fileTotake;
 FILE* file;
 static bool need_new_line = true;
 string errstring;
-static int linelen = 0;
 static int tokenlength = 0;
 static char linebuf[1024];
 const char* DELIM = " \t\n\r\v\f";
@@ -54,17 +52,9 @@ void __instrerror(int errcode){
     //cout  << "\t" << errarr[errcode] << endl;
     }
     else {
-        //cout << errstring << "is not defined; zero used";
-        // char* errch;
-        // strcpy(errch,errstring.c_str());
-        // //cout << errch << endl;
-
-        //cout << errstring << endl;
-        //char output[100];
+        
         cout << " Error: " << errstring << " is not defined; zero used";
-        //cout << "Error: is not defined; zero used" << endl;
-        //sprintf( output,"Error: %s is not defined; zero used\n",errstring.c_str());
-        //cout << output << endl;
+        
     }
 
 }
@@ -73,16 +63,11 @@ char * getToken()
 {
     while(1) {
         if (need_new_line) {
-            //linelen = strlen(linebuf);
-            //cout << (linebuf) << endl;
-            //printf("%s",linebuf);
-            //cout << "linelen " <<linelen << endl; 
             
             if (fgets(linebuf, 1024, file) == NULL) {
                 //cout << "end of file" << endl;
                 lineoffset = lineoffset + tokenlength;
                 eofFlag = true;
-                //lineoffset = linelen;
                return NULL;
                } // EOF reached
             if((strcmp(linebuf,"\n") == 0)||(strcmp(linebuf,"\r\n") == 0)||(strcmp(linebuf,"\0") == 0)){
@@ -100,7 +85,6 @@ char * getToken()
             need_new_line = false;
             tokenlength = strlen(tok);
             lineoffset = tok - linebuf + 1;
-            //linelen = strlen(tok);
             return tok;
         }
         char* tok = strtok(NULL, DELIM);
@@ -118,17 +102,15 @@ char * getToken()
 }
 
 bool validSym(char * str){
-    // printf("in valid symbool\n");
+    
     if (strlen(str)>16){
-        // printf("hello\n");
         //printf("Symbol greater than 16 characters");
         __parseerror(3);
         return false;
     }
     else{
         if(isalpha(str[0])){
-            // printf("hi\n");
-            // cout << strlen(str) << endl;
+            
             for (int i=1; i<(strlen(str)); i++){
                 // cout << str[i] << endl;
                 if (isalnum(str[i]))
@@ -170,21 +152,15 @@ string convertToString(char* a)
 }
 
 bool checkint(char * str){
-    //cout << "checkintold" << strlen(str) << endl;
-    string s = convertToString(str);
-    s.erase(s.find_last_not_of(" \t\n\r\f\v") + 1);
+    
+    string s = convertToString(str);             // converting to string
+    s.erase(s.find_last_not_of(" \t\n\r\f\v") + 1);    // remove unwanted characters
     int n = s.length();
     char ca[n+1];
-    strcpy(ca,s.c_str());
-    //cout <<"checkintnew" << n << endl;
-    //cout << "s=" << ca << endl;
-    //cout << "lastchar" <<ca[n-1] << "wohoo" << endl;
+    strcpy(ca,s.c_str());                             // converted to char *
+    
     for (int i=0; i<n; i++){
-        //printf("stri %c\n",ca[i]);
-        // if(str[i]=='\0' || str[i]=='\n' || str[i]==' '){
-        //     printf("yo");
-        //     continue;
-        // }
+        
         if (isdigit(ca[i]))
             continue;
         else
@@ -203,8 +179,7 @@ int readNum(){
         }
         else
         return -1;
-        //eofFlag = true;
-        // __parseerror(0);
+        
         }
     else if(checkint(c)){
         return atoi(c);
@@ -217,8 +192,7 @@ char * readSym(){
     char * c = getToken();
     //cout << c << endl;
     if(c == NULL) {  
-        // printf("hey");
-        //eofFlag = true;
+        
          __parseerror(1);
     }
     if (validSym(c)){
@@ -231,16 +205,9 @@ char * readSym(){
 
 char readinstr(){
     char * c = getToken();
-    //printf("token%s",c);
-    // cout <<"token length" <<strlen(c) << endl;
-    // string s = convertToString(c);
-    // s.erase(std::remove_if(s.begin(), s.end(), ::isspace), s.end());
-    // int n = s.length();
-    // cout << "newlen" << n << endl;
-    // char ca[n+1];
-    // strcpy(ca,s.c_str());
+    
     if(c == NULL){
-        //cout << "Hi" << endl;
+        
        __parseerror(2); 
     }
     if(strlen(c) != 1){
@@ -255,7 +222,6 @@ char readinstr(){
         }
         else{
             //cout << "no" << endl;
-            //cout << "a" <<c[0] <<"a";
             __parseerror(2);
         }
     }
@@ -277,13 +243,6 @@ int* CheckRule5(int instrcount, int module,string* symarray,int* addrarray, int 
 
 }
 
-// bool check_opcode(int address){
-//     int opcode = address/1000;
-//     if(opcode<10)
-//        return true;
-//     else
-//        return false;
-// }
 
 void check_used_symbols(bool* usedarr,string* usearr,int module,int usecount){
     for(int i = 0; i<usecount; i++){
@@ -291,8 +250,7 @@ void check_used_symbols(bool* usedarr,string* usearr,int module,int usecount){
         //cout << usearr[i] << endl;
         if(!(usedarr[i])){
             cout << "Warning: Module " << module << ": " << usearr[i] << " appeared in the uselist but was not actually used\n";
-            //printf("Warning: Module %d: %s appeared in the uselist but was not actually used",module,usearr[i].c_str());
-            //cout << "\tWarning: Module" << module << ":" << usearr[i];
+            
         }
     }
 }
@@ -362,10 +320,8 @@ void pass1(){
         for (int i=0;i<defcount;i++) {
             char* sym = readSym();
             //cout << sym << endl;
-            //cout << lineoffset << endl;
             int val = readNum();
             //cout << val << endl;
-            //cout << lineoffset << endl;
             bool check = check_multi_def_sym(sym,symarray,i);
             // cout << check << endl;
             if(!check){
@@ -393,7 +349,7 @@ void pass1(){
         //use line
         int usecount = readNum();
         //cout << usecount << endl;
-        //cout << "usecount offset"<< lineoffset << endl;
+        
         if(usecount>16){
             __parseerror(5);
         }
@@ -401,12 +357,10 @@ void pass1(){
         for (int i=0;i<usecount;i++) {
         char* sym = readSym();
         //cout << sym << endl;
-        //cout << lineoffset << endl;
         }
         // instruction line 
         int instrcount = readNum();
-        //cout << instrcount << endl;
-        //cout << "Instroffset"<<lineoffset << endl;
+        
         if(instrcount + counter>=512){
             __parseerror(6);
         }
@@ -450,7 +404,6 @@ void pass2(){
             int val = readNum();
             // cout << val << endl;
         }
-    // printf("Hi");
     int usecount = readNum();
     //cout << "usecount" << usecount << endl;
     string usearr[usecount];
@@ -464,13 +417,9 @@ void pass2(){
         str.erase(str.find_last_not_of(" \t\n\r") + 1);
         usearr[i] = str;
         //cout << usearr[i] << endl;
-        //cout << "sym***" << symtable[usearr[i]] << endl;
         }  
 
-    // for (int i = 0; i < usecount; i++){
-    //     //printf("Use Array outside");
-    //     cout << usearr[i] << "\n";   
-    // }
+    
     int instrcount = readNum();
     //printf("instrcount is %d",instrcount);
     
@@ -482,7 +431,6 @@ void pass2(){
         //cout << "address" << address << endl;
         int mmaddress = 0;
         int errcode = -1;
-        //string inmode = convertToString(instrmode);
         //cout << "1inmode" << inmode<< endl;
         int rem = address%1000;
         int opcode = address/1000;
@@ -506,17 +454,10 @@ void pass2(){
             }
             else if(rem<usecount){
             string AssSym = usearr[rem];
-            // cout << "AssSym"<<AssSym <<endl;
-            // cout << "printing comparison";
-            //cout << AssSym.compare("X21");
-            //printSymTable();
-            // auto itr = symtable.find(AssSym);
-            // cout << itr->first << "and" << itr->second << endl;
             
             //cout << symtable[AssSym] << endl;
             usedarr[rem] = true;
             if(!symtable[AssSym]){
-                //printf("Hi");
                 mmaddress = address - rem;
                 errcode = 6;
                 errstring = AssSym;
@@ -555,8 +496,8 @@ void pass2(){
             mmaddress = address;
         }
         else{
-            cout << "inmode"<<inmode << endl;
-            printf("incorrect address mode");
+            //cout << "inmode"<<inmode << endl;
+            //printf("incorrect address mode");
         }
         mmcounter++;
         printf("%03d: %04d",mmcounter, mmaddress);
